@@ -711,7 +711,7 @@ class Basis(abc.ABC):
                 f" expects {expected_coeffs} coefficients, `coef_` has {coef_.shape[0]} elements instead!"
             )
 
-    def get_weighted_basis(self, coef_: NDArray, n_samples: int, component_repeats: Optional[List] = None) -> List:
+    def get_weighted_basis(self, coef_: NDArray, n_samples: int, component_repeats: Optional[List] = None) -> List[tuple]:
         """
         Compute the response kernel (weighted sum of basis) on a grid equi-spaced samples.
 
@@ -757,7 +757,39 @@ class Basis(abc.ABC):
             component_repeats = [1] * self._count_additive()
 
         coef_ = np.asarray(coef_)
+        # check weights outside recursion
         self._check_coef_size(coef_, component_repeats)
+        # call recursion
+        return self._get_weigths(coef_, n_samples, component_repeats)
+
+    def _get_weigths(self, coef_: NDArray, n_samples: int, component_repeats: List[int]) -> List[tuple]:
+        """
+        Compute the response kernel (weighted sum of basis) on a grid equi-spaced samples.
+
+        Recursive call that extract the coefficients for each additive component.
+
+        Parameters
+        ----------
+        coef_
+        n_samples
+        component_repeats
+
+        Parameters
+        ----------
+        coef_:
+            A 1D array-like containing the weights for each basis element.
+        n_samples:
+            The number of samples for constructing the equi-spaced grid of points over
+            which each additive component of the basis will be evaluated.
+        component_repeats:
+            List of integers. How many times each additive element of the basis is repeated in coef_.
+            Default is one time per element.
+
+        Returns
+        -------
+            The grid of equi-spaced points and the weighted sum of the basis at those points
+            for each additive component.
+        """
         kernel = []
         if isinstance(self, AdditiveBasis):
             split_idx = self._basis1._count_additive()
@@ -765,7 +797,7 @@ class Basis(abc.ABC):
                 coef_[: self._basis1.n_basis_funcs], n_samples, component_repeats[:split_idx]
             )
             kernel += self._basis2.get_weighted_basis(
-                coef_[self._basis1.n_basis_funcs :], n_samples, component_repeats[split_idx:]
+                coef_[self._basis1.n_basis_funcs:], n_samples, component_repeats[split_idx:]
             )
         else:
             res = self.evaluate_on_grid(*(n_samples,) * self._n_input_dimensionality)
