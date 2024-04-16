@@ -793,11 +793,12 @@ class Basis(abc.ABC):
         kernel = []
         if isinstance(self, AdditiveBasis):
             split_idx = self._basis1._count_additive()
-            kernel += self._basis1.get_weighted_basis(
-                coef_[: self._basis1.n_basis_funcs], n_samples, component_repeats[:split_idx]
+            n_basis = np.multiply(self._basis1._count_additive_n_basis(),  component_repeats[:split_idx]).sum()
+            kernel += self._basis1._get_weigths(
+                coef_[: n_basis], n_samples, component_repeats[:split_idx]
             )
-            kernel += self._basis2.get_weighted_basis(
-                coef_[self._basis1.n_basis_funcs:], n_samples, component_repeats[split_idx:]
+            kernel += self._basis2._get_weigths(
+                coef_[n_basis:], n_samples, component_repeats[split_idx:]
             )
         else:
             res = self.evaluate_on_grid(*(n_samples,) * self._n_input_dimensionality)
