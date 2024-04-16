@@ -4,13 +4,12 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Callable, List, Literal, Optional, Union
+from typing import Any, Callable, List, Literal, Union
 
 import jax
 import jax.numpy as jnp
-import matplotlib.pyplot as plt
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import NDArray
 
 from .tree_utils import pytree_map_and_reduce
 from .type_casting import is_numpy_array_like, support_pynapple
@@ -391,73 +390,6 @@ def shift_time_series(
             time_series,
             adjust_idx,
         )
-
-
-def plot_spike_raster(
-    spike_data: Union[jnp.ndarray, np.ndarray],
-    lineoffsets: Union[None, float, ArrayLike] = None,
-    linelengths: Union[float, ArrayLike] = 0.2,
-    linewidths: Union[float, ArrayLike] = 0.5,
-    ax: Optional[plt.Axes] = None,
-    **kwargs,
-) -> plt.Axes:
-    """Plot decent looking spike raster.
-
-    We set ``yticks=[]`` and ``xlim=[0, spike_data.shape[1]]``.
-
-    Parameters
-    ----------
-    spike_data
-        2d array of spikes, (neurons, time_bins). Should contain integers where
-        spikes occur.
-    lineoffsets
-        The offset of the center of the lines from the origin, in the direction
-        orthogonal to orientation. This can be a sequence with length matching
-        the length of positions. If None, we use np.arange(spike_data.shape[0])
-    linelengths
-        The total height of the lines (i.e. the lines stretches from lineoffset
-        - linelength/2 to lineoffset + linelength/2). This can be a sequence
-        with length matching the length of positions.
-    linewidths
-        The line width(s) of the event lines, in points. This can be a sequence
-        with length matching the length of positions.
-    ax
-        Axes to plot on. If None, we create a new one-axis figure with
-        ``figsize=(spike_data.shape[1]/100, spike_data.shape[0]/5)``
-    kwargs
-        Passed to ``ax.eventplot``
-
-    Returns
-    -------
-    ax
-        Axis containing the raster plot
-
-    Raises
-    ------
-    ValueError
-        If ``spike_data.ndim!=2``
-
-    """
-    if spike_data.ndim != 2:
-        raise ValueError(
-            f"spike_data should be 2d, but got {spike_data.ndim}d instead!"
-        )
-    events = [d.nonzero()[0] for d in spike_data]
-    if ax is None:
-        _, ax = plt.subplots(
-            1, 1, figsize=(spike_data.shape[1] / 100, spike_data.shape[0] / 5)
-        )
-    if lineoffsets is None:
-        lineoffsets = jnp.arange(len(events))
-    ax.eventplot(
-        events,
-        lineoffsets=lineoffsets,
-        linelengths=linelengths,
-        linewidths=linewidths,
-        **kwargs,
-    )
-    ax.set(yticks=[], xlim=[0, spike_data.shape[1]])
-    return ax
 
 
 def row_wise_kron(
