@@ -760,9 +760,9 @@ class Basis(abc.ABC):
         # check weights outside recursion
         self._check_coef_size(coef_, component_repeats)
         # call recursion
-        return self._get_weigths(coef_, n_samples, component_repeats)
+        return self._get_weights(coef_, n_samples, component_repeats)
 
-    def _get_weigths(self, coef_: NDArray, n_samples: int, component_repeats: List[int]) -> List[tuple]:
+    def _get_weights(self, coef_: NDArray, n_samples: int, component_repeats: List[int]) -> List[tuple]:
         """
         Compute the response kernel (weighted sum of basis) on a grid equi-spaced samples.
 
@@ -794,10 +794,10 @@ class Basis(abc.ABC):
         if isinstance(self, AdditiveBasis):
             split_idx = self._basis1._count_additive()
             n_basis = np.multiply(self._basis1._count_additive_n_basis(),  component_repeats[:split_idx]).sum()
-            kernel += self._basis1._get_weigths(
+            kernel += self._basis1._get_weights(
                 coef_[: n_basis], n_samples, component_repeats[:split_idx]
             )
-            kernel += self._basis2._get_weigths(
+            kernel += self._basis2._get_weights(
                 coef_[n_basis:], n_samples, component_repeats[split_idx:]
             )
         else:
