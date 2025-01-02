@@ -53,9 +53,60 @@ print(basis_elements.shape)
 plt.plot(x, y)
 ```
 
+### Changing Basis Parameters
+
+A basis object is characterized by set of (hyper-)parameters. These parameters can be provided at object definition, most of them have defaults, while some (as `n_basis_funcs` in the example above) must be provided explicitly.
+
+You can retrieve all the available parameters with the `get_params` method, that returns a dictionary of parameters.
+
+```{code-cell} ipython3
+
+# get a dictionary storing the parameters
+bas.get_params()
+```
+
+You cam set the parameters by:
+
+1. Calling the `set_params` method.
+2. Setting the attribute directly (`bas.attribute_name = new_value`).
+
+
+Set the  spline `order` to 3 with `set_params` and the number of basis to 8 by changing the attribute directly.
+
+```{code-cell} ipython3
+
+# change basis parameters
+bas.set_params(order=3)
+bas.n_basis_funcs = 8
+
+# check the new settings
+bas.get_params()
+```
+
+Plot the basis under different configurations.
+ 
+```{code-cell} ipython3
+```
+
+All the parameters except `label` can be modified after the basis is instantiated. Those parameters define the functional form of the elements and their number, and constitutes the nobs that one can play with when modeling a neural response. 
+
+On the other hand,`label` should a descriptive ID for the basis, indicating the type of variable being modelled. 
+
+An attempt to change the `label` will result in an error:
+
+```{code-cell} ipython3
+
+bas = nmo.basis.BSplineEval(n_basis_funcs=10, label="my label")
+
+try:
+    bas.label = "new label"
+except AttributeError as e:
+    print(repr(e))
+```
+
 ### Approximating 1D Non-Linearities
 
-By weighting and summing this elements, we can approximate well smoothly changing non-linearities.
+By weighting and summing together the basis elements, one can approximate well smoothly changing non-linearities.
 
 Let's see how this works.
 
@@ -63,6 +114,9 @@ Here I am evaluating two smoothly changing functions (a gaussian and a logarithm
 (a step function) over a set of equi-spaced points. For each function I am providing a set of 10 weights, one per basis element.
 
 ```{code-cell} ipython3
+
+# define a basis
+bas = nmo.basis.BSplineEval(n_basis_funcs=10)
 
 gauss = np.exp(-np.linspace(-2, 2, 100)**2)
 weights_gauss = [0.018, 0.034, 0.082, 0.441, 1.02 , 1.02 , 0.441, 0.082, 0.034, 0.018]
@@ -76,9 +130,9 @@ weights_step = [-0.025,  0.081, -0.144,  0.196, -0.404,  1.404,  0.804,  1.144, 
 
 ```
 
-If you multipy each basis element by the corresponding weight, and sum over the elements, you can create approximate the original non-linearity.
+If you multipy each basis element by the corresponding weight, and sum over the elements, we are approximating the original non-linearity.
 
-As an exercise, compute these weighted sums and call the results `approx_gauss`, `approx_log`, `approx_step` respectively.
+As an exercise, compute these weighted sums and store the results in `approx_gauss`, `approx_log`, `approx_step` respectively.
 
 ```{code-cell} ipython3
 
@@ -107,3 +161,49 @@ plt.plot(step, lw=2)
 plt.plot(approx_step, ls='--')
 plt.tight_layout()
 ```
+
+### Basis for Angular Variables
+
+To model periodic variables (angles) you can define a cyclic-BSpline. 
+
+Define, evaluate and plot a `CyclicBSplineEval` object:
+
+
+```{code-cell} ipython3
+
+bas_cyclic = nmo.basis.CyclicBSplineEval(10)
+
+x, cyclic_basis_element = bas_cyclic.evaluate_on_grid(100)
+
+plt.plot(x, cyclic_basis_element)
+```
+
+### Multi-dimensional Bases
+
+With the same approach, we can approximate functions of higher dimension. This can be useful when we want to characterize the 
+neural response to a 2D variable such as the position of an animal in an arena. 
+
+In NeMoS, you can combine two or more 1D bases to obtain a multidimensional bases using the multiplication operator.
+
+... add code
+
+The drawback is that the number of parameters grows exponentially with the dimensionality, so be aware of that!
+
+
+### Non-linear Mapping And Linear Temporal Effects
+
+So far, we have shown how we can approximate a non-linear function with a basis and a set weights but we did not talk about how to use the approximation in a model.
+
+Here we will show two common applications,
+
+### Basis Pynapple Time-Series
+
+
+### Composite Bases
+
+
+
+
+
+
+
