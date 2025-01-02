@@ -17,6 +17,7 @@ Tutorials <tutorials/README>
 Getting Help <getting_help>
 API Reference <api_reference>
 For Developers <developers_notes/README>
+Workshop Tutorial <workshop_tutorial/README>
 ```
 
 
